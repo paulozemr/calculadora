@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Proposta</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script>
+        function adicionarLinha() {
+            let container = document.getElementById('linhas-container');
+            let index = container.children.length;
+            
+            let div = document.createElement('div');
+            div.classList.add('mb-3');
+            div.innerHTML = `
+                <label class="form-label">Linha ${index + 1}:</label>
+                <input type="number" class="form-control quantidade" placeholder="Quantidade" min="1">
+                <input type="number" class="form-control valor-novo mt-2" placeholder="Valor Unitário Novo (R$)" step="0.01" min="0">
+                <input type="number" class="form-control valor-antigo mt-2" placeholder="Valor Unitário Antigo (R$)" step="0.01" min="0">
+            `;
+            container.appendChild(div);
+        }
+        
+        function calcularProposta() {
+            let empresa = document.getElementById('empresa').value;
+            let data = document.getElementById('data').value;
+            let quantidades = document.querySelectorAll('.quantidade');
+            let valoresNovos = document.querySelectorAll('.valor-novo');
+            let valoresAntigos = document.querySelectorAll('.valor-antigo');
+            
+            let totalNovo = 0, totalAntigo = 0;
+            quantidades.forEach((quantidade, i) => {
+                let qtd = parseFloat(quantidade.value) || 0;
+                let novo = parseFloat(valoresNovos[i].value) || 0;
+                let antigo = parseFloat(valoresAntigos[i].value) || 0;
+                totalNovo += qtd * novo;
+                totalAntigo += qtd * antigo;
+            });
+            
+            let diferencaMensal = totalAntigo - totalNovo;
+            let economia24Meses = diferencaMensal * 24;
+            
+            localStorage.setItem("empresa", empresa);
+            localStorage.setItem("data", data);
+            localStorage.setItem("totalNovo", totalNovo.toFixed(2));
+            localStorage.setItem("totalAntigo", totalAntigo.toFixed(2));
+            localStorage.setItem("diferencaMensal", diferencaMensal.toFixed(2));
+            localStorage.setItem("economia24Meses", economia24Meses.toFixed(2));
+            
+            window.location.href = "proposta.html";
+        }
+    </script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="mb-4">Calculadora de Proposta de Linhas Telefônicas</h2>
+        <div class="mb-3">
+            <label for="empresa" class="form-label">Nome da Empresa:</label>
+            <input type="text" id="empresa" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="data" class="form-label">Data da Proposta:</label>
+            <input type="date" id="data" class="form-control">
+        </div>
+        <div id="linhas-container"></div>
+        <button class="btn btn-secondary mb-3" onclick="adicionarLinha()">Adicionar Linha</button>
+        <button class="btn btn-primary" onclick="calcularProposta()">Gerar Proposta</button>
+    </div>
+</body>
+</html>
