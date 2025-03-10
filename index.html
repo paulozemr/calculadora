@@ -14,9 +14,11 @@
             div.classList.add('mb-3');
             div.innerHTML = `
                 <label class="form-label">Linha ${index + 1}:</label>
-                <input type="number" class="form-control quantidade" placeholder="Quantidade" min="1">
+                <input type="text" class="form-control numero-linha" placeholder="Número da Linha">
                 <input type="number" class="form-control valor-novo mt-2" placeholder="Valor Unitário Novo (R$)" step="0.01" min="0">
                 <input type="number" class="form-control valor-antigo mt-2" placeholder="Valor Unitário Antigo (R$)" step="0.01" min="0">
+                <input type="number" class="form-control gb-antigo mt-2" placeholder="GBs Antigos" min="0">
+                <input type="number" class="form-control gb-novo mt-2" placeholder="GBs Novos" min="0">
             `;
             container.appendChild(div);
         }
@@ -24,28 +26,41 @@
         function calcularProposta() {
             let empresa = document.getElementById('empresa').value;
             let data = document.getElementById('data').value;
-            let quantidades = document.querySelectorAll('.quantidade');
+            let numerosLinha = document.querySelectorAll('.numero-linha');
             let valoresNovos = document.querySelectorAll('.valor-novo');
             let valoresAntigos = document.querySelectorAll('.valor-antigo');
+            let gbsAntigos = document.querySelectorAll('.gb-antigo');
+            let gbsNovos = document.querySelectorAll('.gb-novo');
             
             let totalNovo = 0, totalAntigo = 0;
-            quantidades.forEach((quantidade, i) => {
-                let qtd = parseFloat(quantidade.value) || 0;
+            let linhas = [];
+            
+            valoresAntigos.forEach((valorAntigo, i) => {
+                let numero = numerosLinha[i].value || "-";
                 let novo = parseFloat(valoresNovos[i].value) || 0;
-                let antigo = parseFloat(valoresAntigos[i].value) || 0;
-                totalNovo += qtd * novo;
-                totalAntigo += qtd * antigo;
+                let antigo = parseFloat(valorAntigo.value) || 0;
+                let gbAntigo = parseInt(gbsAntigos[i].value) || 0;
+                let gbNovo = parseInt(gbsNovos[i].value) || 0;
+                
+                // Soma os valores antigos e novos sem considerar os GBs no cálculo financeiro
+                totalNovo += novo;
+                totalAntigo += antigo;
+                
+                linhas.push({ numero, antigo, novo, gbAntigo, gbNovo });
             });
             
-            let diferencaMensal = totalAntigo - totalNovo;
+            // Correção da redução mensal para que nunca seja negativa
+            let diferencaMensal = Math.max(0, totalAntigo - totalNovo);
             let economia24Meses = diferencaMensal * 24;
-            
+
+            // Armazenar os valores para a proposta
             localStorage.setItem("empresa", empresa);
             localStorage.setItem("data", data);
-            localStorage.setItem("totalNovo", totalNovo.toFixed(2));
-            localStorage.setItem("totalAntigo", totalAntigo.toFixed(2));
-            localStorage.setItem("diferencaMensal", diferencaMensal.toFixed(2));
-            localStorage.setItem("economia24Meses", economia24Meses.toFixed(2));
+            localStorage.setItem("totalNovo", totalNovo);
+            localStorage.setItem("totalAntigo", totalAntigo);
+            localStorage.setItem("diferencaMensal", diferencaMensal);
+            localStorage.setItem("economia24Meses", economia24Meses);
+            localStorage.setItem("linhas", JSON.stringify(linhas));
             
             window.location.href = "proposta.html";
         }
@@ -64,7 +79,7 @@
         </div>
         <div id="linhas-container"></div>
         <button class="btn btn-secondary mb-3" onclick="adicionarLinha()">Adicionar Linha</button>
-        <button class="btn btn-primary" onclick="calcularProposta()">Gerar Proposta</button>
+        <button class="btn btn-primary" onclick="calcularProposta()">Calcular</button>
     </div>
 </body>
 </html>
